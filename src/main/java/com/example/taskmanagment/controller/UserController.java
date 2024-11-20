@@ -42,9 +42,10 @@ public class UserController {
     }
 
 
-//    @PutMapping("update")
-//    public ResponseEntity<Response> udpateUser(@RequestBody User user){
-//        Response response = userService.updateUser(user);
-//        return  ResponseEntity.status(response.getStatusCode()).body(response);
-//    }
+    @PutMapping("update/{id}")
+    public ResponseEntity<Response> udpateUser(@PathVariable long id,
+                                               @RequestBody User user){
+        Response response = userService.updateUser(id, user);
+        return  ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 }

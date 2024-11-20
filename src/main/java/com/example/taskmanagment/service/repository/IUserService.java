@@ -14,4 +14,6 @@ public interface IUserService {
     Response getUserByID(Long userID);
 
     Response deleteUserByID(Long id);
+
+    Response updateUser(Long id, User user);
 }

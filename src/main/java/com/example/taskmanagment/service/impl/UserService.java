@@ -113,5 +113,28 @@ public class UserService implements IUserService {
         return response;
     }
 
+    @Override
+    public Response updateUser(Long id, User user) {
+        Response response = new Response();
 
+        try {
+        User updateUser = userRepository.findById(id).orElseThrow(() -> new OurExeption("User not found"));
+
+        if(user.getPassword() != null) updateUser.setPassword(MD5(user.getPassword()));
+        if(user.getUsername() != null) updateUser.setUsername(user.getUsername());
+        if(user.getRole()     != null) updateUser.setRole(user.getRole());
+        updateUser.setUpdated_at(currentDateTime());
+        userRepository.save(updateUser);
+        UserDto userDto = mapUserEntityToUserDTO(updateUser);
+        response.setStatusCode(200);
+        response.setMessage("Success");
+        response.setBody(userDto);
+
+        }catch (OurExeption e){
+            response.setStatusCode(500);
+            response.setMessage("Error updating. " + e.getMessage());
+        }
+
+        return response;
+    }
 }
