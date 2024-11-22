@@ -1,16 +1,21 @@
 package com.example.taskmanagment.service.impl;
 
+import com.example.taskmanagment.dto.LoginRequest;
 import com.example.taskmanagment.dto.Response;
 import com.example.taskmanagment.dto.UserDto;
 import com.example.taskmanagment.entity.User;
 import com.example.taskmanagment.exeption.OurExeption;
 import com.example.taskmanagment.repo.UserRepository;
 import com.example.taskmanagment.service.repository.IUserService;
+import com.example.taskmanagment.utils.JWTUtils;
 import com.example.taskmanagment.utils.Utils;
-import jdk.jfr.Timestamp;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +29,12 @@ public class UserService implements IUserService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private JWTUtils jwtUtils;
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public Response createUser(User user) {
@@ -43,7 +54,7 @@ public class UserService implements IUserService {
                 throw new OurExeption(user.getEmail() + " Already Exists");
             }
             user.setCreated_at(Utils.currentDateTime());
-            user.setPassword(Utils.MD5(user.getPassword()));
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             User createdUser = userRepository.save(user);
             UserDto userDto = mapUserEntityToUserDTO(createdUser);
             response.setStatusCode(200);
@@ -135,6 +146,25 @@ public class UserService implements IUserService {
             response.setMessage("Error updating. " + e.getMessage());
         }
 
+        return response;
+    }
+
+    @Override
+    public Response loginUser(LoginRequest loginRequest) {
+        Response response = new Response();
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            var user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new OurExeption("user Not found"));
+            var token = jwtUtils.generateToken(user);
+            response.setStatusCode(200);
+            response.setToken(token);
+            response.setMessage("successful");
+
+        }catch (OurExeption e){
+            response.setStatusCode(500);
+            response.setMessage("Error Occurred During User Login " + e.getMessage());
+        }
         return response;
     }
 }

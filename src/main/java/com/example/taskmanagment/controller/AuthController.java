@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
     UserService userService;
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseEntity<Response> loginUser(@RequestBody LoginRequest loginRequest){
         Response response = userService.loginUser(loginRequest);
         return ResponseEntity.status(response.getStatusCode()).body(response);
